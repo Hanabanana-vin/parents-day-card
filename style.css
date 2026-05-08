@@ -55,35 +55,60 @@ body {
     max-height: 100%;
     object-fit: contain;
     transform-origin: bottom center; /* 아래쪽을 기준으로 크기가 커지도록 설정 */
-    mix-blend-mode: multiply; /* 생성된 이미지의 흰 배경을 투명하게 처리 */
 }
 
 /* 피기 전 꽃봉오리 */
 .bud {
     opacity: 1;
     transform: scale(1);
-    transition: opacity 1.5s ease-in-out;
 }
 
-/* 활짝 핀 꽃 (처음엔 꽃잎 부분을 안 보이게 숨김) */
+/* 반쯤 핀 꽃 */
+.half {
+    opacity: 0;
+    transform: scale(0.9) translateY(5px);
+    filter: drop-shadow(0 5px 10px rgba(229, 62, 62, 0.2));
+}
+
+/* 활짝 핀 꽃 */
 .blossom {
     opacity: 0;
-    transform: scale(0.6) translateY(20px);
-    transform-origin: 50% 30%; /* 꽃봉오리 머리 부근을 중심으로 */
-    clip-path: circle(0% at 50% 30%);
-    transition: all 1.8s cubic-bezier(0.34, 1.56, 0.64, 1);
-    filter: drop-shadow(0 15px 20px rgba(229, 62, 62, 0.4));
+    transform: scale(0.8) translateY(10px);
+    filter: drop-shadow(0 10px 15px rgba(229, 62, 62, 0.3));
 }
 
-/* 후~ 불어서 피어나는 애니메이션 상태 */
+/* 후~ 불어서 피어나는 애니메이션 상태 (3단계 모션) */
 .flower-wrapper.is-bloomed .bud {
-    opacity: 0; /* 서서히 사라짐 */
+    animation: budFade 2.5s forwards;
+}
+
+.flower-wrapper.is-bloomed .half {
+    animation: halfBloom 2.5s forwards;
 }
 
 .flower-wrapper.is-bloomed .blossom {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-    clip-path: circle(120% at 50% 50%); /* 중심에서부터 꽃잎이 확 피어남 */
+    animation: fullBloom 2.5s forwards;
+}
+
+@keyframes budFade {
+    0% { opacity: 1; transform: scale(1); }
+    25% { opacity: 0; transform: scale(1.05); }
+    100% { opacity: 0; }
+}
+
+@keyframes halfBloom {
+    0% { opacity: 0; transform: scale(0.9) translateY(5px); }
+    20% { opacity: 1; transform: scale(1) translateY(0); }
+    60% { opacity: 1; transform: scale(1.02) translateY(-2px); }
+    85% { opacity: 0; transform: scale(1.05) translateY(-5px); }
+    100% { opacity: 0; }
+}
+
+@keyframes fullBloom {
+    0% { opacity: 0; transform: scale(0.8) translateY(10px); clip-path: circle(30% at 50% 30%); }
+    50% { opacity: 0; transform: scale(0.9) translateY(5px); clip-path: circle(50% at 50% 30%); }
+    75% { opacity: 1; transform: scale(1) translateY(0); clip-path: circle(120% at 50% 50%); }
+    100% { opacity: 1; transform: scale(1) translateY(0); clip-path: circle(120% at 50% 50%); }
 }
 
 .hidden {

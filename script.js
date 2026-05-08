@@ -85,11 +85,11 @@ document.addEventListener('DOMContentLoaded', () => {
         instructionText.classList.add('hidden');
         audioFeedback.classList.add('hidden');
         
-        // 잠깐 딜레이 후 메세지 표시
+        // 잠깐 딜레이 후 메세지 표시 (꽃 피는 3단계 애니메이션이 2.5초 걸리므로 대기)
         setTimeout(() => {
             messageText.classList.remove('hidden');
             createConfetti();
-        }, 800);
+        }, 2500);
     }
 
     function createConfetti() {
