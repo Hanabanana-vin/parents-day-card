@@ -55,6 +55,7 @@ body {
     max-height: 100%;
     object-fit: contain;
     transform-origin: bottom center; /* 아래쪽을 기준으로 크기가 커지도록 설정 */
+    mix-blend-mode: multiply; /* 생성된 이미지의 흰 배경을 투명하게 처리 */
 }
 
 /* 피기 전 꽃봉오리 */
