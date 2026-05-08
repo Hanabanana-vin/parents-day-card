@@ -28,9 +28,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let isBloomed = false;
 
     // 튜닝
-    const THRESHOLD = 22;
-    const ADVANCE_SPEED = 0.5;   // 강하게 불 때 1초당 진행률
-    const REWIND_SPEED = 0.3;    // 안 불 때 1초당 되감기 속도
+    const THRESHOLD = 12;        // 수음 민감도 (낮을수록 민감)
+    const STRENGTH_DIV = 35;     // 강도 정규화 분모 (작을수록 빨리 max)
+    const ADVANCE_SPEED = 0.55;
+    const REWIND_SPEED = 0.3;
     const COMPLETE_AT = 0.985;
 
     // ── 프레임 미리 로딩 ──────────────────────────────────────
@@ -96,7 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             startBtn.classList.add('hidden');
             const p = document.querySelector('.instruction-text p');
-            if (p) p.innerHTML = "화면 가까이 대고 <strong>'후~'</strong> 길게 불어주세요 🌬️";
+            if (p) p.innerHTML = "마이크를 가까이 대고 <strong>'후~'</strong> 길게 불어주세요 🌬️";
 
             lastTime = 0;
             animationId = requestAnimationFrame(tick);
@@ -160,7 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const isBlowing = avg > THRESHOLD;
         if (isBlowing) {
             lastBlowAt = now;
-            const strength = Math.min(1, (avg - THRESHOLD) / 60);
+            const strength = Math.min(1, (avg - THRESHOLD) / STRENGTH_DIV);
             progress += strength * ADVANCE_SPEED * dt;
         } else {
             progress -= REWIND_SPEED * dt;
