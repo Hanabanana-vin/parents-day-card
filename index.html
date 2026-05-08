@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>어버이날 감사 카드</title>
+    <link rel="stylesheet" href="style.css">
+    <meta name="description" content="사랑하는 부모님을 위한 어버이날 감사 카드입니다.">
+</head>
+<body>
+    <div class="card-container">
+        <!-- 꽃봉오리 / 꽃 영역 -->
+        <div class="flower-wrapper" id="flowerWrapper">
+            <img src="bud.png" alt="꽃봉오리" class="flower bud" id="budImg" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><text y=\'70\' font-size=\'70\'>🌱</text></svg>'">
+            <img src="flower.png" alt="활짝 핀 카네이션" class="flower blossom hidden" id="blossomImg" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><text y=\'70\' font-size=\'70\'>🌺</text></svg>'">
+        </div>
+
+        <!-- 안내 문구 (초기 표시) -->
+        <div class="instruction-text" id="instructionText">
+            <p>소리내어 <strong>'후~'</strong> 불어주세요 🌬️</p>
+            <button id="startBtn" class="start-btn">마이크 허용하고 시작하기</button>
+        </div>
+
+        <!-- 감사 문구 (꽃 핀 후 표시) -->
+        <div class="message-text hidden" id="messageText">
+            <h1>사랑하는 엄마 아빠!</h1>
+            <p>낳아주시고 길러주셔서 진심으로 감사합니다.<br>
+            넘어질 때마다 묵묵히 제 뒤를 지켜주신 두 분 덕분에<br>제가 여기까지 올 수 있었습니다.</p>
+            <p>이 은혜, 평생 효도로 갚을게요!<br>항상 건강하시고 행복하세요. 사랑합니다 ❤️</p>
+        </div>
+        
+        <!-- 오디오 피드백 (시각적 게이지) -->
+        <div class="audio-feedback hidden" id="audioFeedback">
+            <div class="bar" id="audioBar"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
