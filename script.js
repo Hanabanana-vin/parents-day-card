@@ -59,8 +59,18 @@ document.addEventListener('DOMContentLoaded', () => {
             const p = document.querySelector('.instruction-text p');
             if (p) p.innerHTML = "화면 가까이 대고 <strong>'후~'</strong> 길게 불어주세요 🌬️";
 
+            // iOS/모바일에서 사용자 제스처 안에서 영상을 한 번 깨워줌
             video.muted = true;
-            video.pause();
+            video.playsInline = true;
+            try { video.load(); } catch (e) {}
+            try {
+                const warm = video.play();
+                if (warm && warm.then) {
+                    await warm.then(() => video.pause()).catch(() => {});
+                } else {
+                    video.pause();
+                }
+            } catch (e) {}
             try { video.currentTime = 0.01; } catch (e) {}
 
             lastTime = 0;
