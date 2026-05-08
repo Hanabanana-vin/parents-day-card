@@ -1,9 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Noto+Serif+KR:wght@400;600&display=swap');
-
 :root {
     --primary-color: #e53e3e;
     --bg-color: #fffaf0;
+    --card-color: #f7f7f7;
     --text-color: #333;
+    --font-sans: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont,
+        system-ui, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
 }
 
 * {
@@ -13,126 +14,105 @@
 }
 
 body {
-    font-family: 'Gowun Dodum', sans-serif;
-    background-color: var(--bg-color);
+    font-family: var(--font-sans);
+    background-color: var(--card-color);
     color: var(--text-color);
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    overflow: hidden;
-    background-image: radial-gradient(circle at center, #fff 0%, #fffaf0 100%);
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 .card-container {
-    width: 90%;
-    max-width: 500px;
+    width: 560px;
+    height: 820px;
+    padding: 40px 32px;
     text-align: center;
-    padding: 3rem 2rem;
-    background: rgba(255, 255, 255, 0.85);
-    border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-    border: 1px solid rgba(229, 62, 62, 0.15);
-    backdrop-filter: blur(10px);
+    background: var(--card-color);
+    border-radius: 24px;
+    box-shadow: 0 20px 50px rgba(40, 20, 20, 0.08);
     z-index: 10;
     position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
 }
 
 .flower-wrapper {
     position: relative;
-    width: 250px;
-    height: 350px;
-    margin: 0 auto 2rem;
-    display: flex;
-    justify-content: center;
-    align-items: flex-end; /* 꽃의 줄기부분이 아래로 오도록 */
+    width: 480px;
+    height: 480px;
+    margin: 0 auto;
+    flex-shrink: 0;
 }
 
-.flower {
-    position: absolute;
-    bottom: 0;
-    max-width: 100%;
-    max-height: 100%;
+.bloom-video {
+    width: 100%;
+    height: 100%;
     object-fit: contain;
-    transform-origin: bottom center; /* 아래쪽을 기준으로 크기가 커지도록 설정 */
+    background: transparent;
+    pointer-events: none;
+    display: block;
 }
 
-/* 피기 전 꽃봉오리 */
-.bud {
+/* 영상 위에 떠있는 작은 인터랙티브 안내 */
+.hint-overlay {
+    position: absolute;
+    left: 50%;
+    bottom: 8%;
+    transform: translateX(-50%);
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #c54450;
+    background: rgba(255, 255, 255, 0.78);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    padding: 8px 16px;
+    border-radius: 999px;
+    box-shadow: 0 4px 14px rgba(180, 60, 70, 0.12);
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s ease;
+}
+
+.hint-overlay.show {
     opacity: 1;
-    transform: scale(1);
-}
-
-/* 반쯤 핀 꽃 */
-.half {
-    opacity: 0;
-    transform: scale(0.9) translateY(5px);
-    filter: drop-shadow(0 5px 10px rgba(229, 62, 62, 0.2));
-}
-
-/* 활짝 핀 꽃 */
-.blossom {
-    opacity: 0;
-    transform: scale(0.8) translateY(10px);
-    filter: drop-shadow(0 10px 15px rgba(229, 62, 62, 0.3));
-}
-
-/* 후~ 불어서 피어나는 애니메이션 상태 (3단계 모션) */
-.flower-wrapper.is-bloomed .bud {
-    animation: budFade 2.5s forwards;
-}
-
-.flower-wrapper.is-bloomed .half {
-    animation: halfBloom 2.5s forwards;
-}
-
-.flower-wrapper.is-bloomed .blossom {
-    animation: fullBloom 2.5s forwards;
-}
-
-@keyframes budFade {
-    0% { opacity: 1; transform: scale(1); }
-    25% { opacity: 0; transform: scale(1.05); }
-    100% { opacity: 0; }
-}
-
-@keyframes halfBloom {
-    0% { opacity: 0; transform: scale(0.9) translateY(5px); }
-    20% { opacity: 1; transform: scale(1) translateY(0); }
-    60% { opacity: 1; transform: scale(1.02) translateY(-2px); }
-    85% { opacity: 0; transform: scale(1.05) translateY(-5px); }
-    100% { opacity: 0; }
-}
-
-@keyframes fullBloom {
-    0% { opacity: 0; transform: scale(0.8) translateY(10px); clip-path: circle(30% at 50% 30%); }
-    50% { opacity: 0; transform: scale(0.9) translateY(5px); clip-path: circle(50% at 50% 30%); }
-    75% { opacity: 1; transform: scale(1) translateY(0); clip-path: circle(120% at 50% 50%); }
-    100% { opacity: 1; transform: scale(1) translateY(0); clip-path: circle(120% at 50% 50%); }
 }
 
 .hidden {
     display: none !important;
 }
 
+/* 안내 문구 — 영상이 진행될수록 JS가 opacity를 낮춤 */
 .instruction-text {
-    font-size: 1.25rem;
+    font-size: 1.2rem;
     color: #555;
-    animation: pulse 2s infinite;
-    height: 80px;
+    font-weight: 500;
+    min-height: 80px;
+    margin-top: 1.25rem;
+    letter-spacing: -0.01em;
+    transition: opacity 0.25s linear;
 }
 
 .start-btn {
-    margin-top: 1.5rem;
+    margin-top: 1.25rem;
     background: linear-gradient(135deg, #fc8181 0%, #e53e3e 100%);
     color: white;
     border: none;
-    padding: 12px 24px;
+    padding: 12px 26px;
     border-radius: 30px;
     font-size: 1.05rem;
-    font-weight: bold;
+    font-weight: 700;
     cursor: pointer;
     font-family: inherit;
+    letter-spacing: -0.01em;
     transition: transform 0.2s, box-shadow 0.2s;
     box-shadow: 0 4px 15px rgba(229, 62, 62, 0.4);
 }
@@ -142,68 +122,54 @@ body {
     box-shadow: 0 6px 20px rgba(229, 62, 62, 0.5);
 }
 
+/* 감사 문구 — 영상 진행도에 동기화되어 JS가 각 요소 opacity 조절 */
 .message-text {
-    font-family: 'Noto Serif KR', serif;
-    animation: fadeInUp 1.5s ease forwards;
-    opacity: 0;
-    margin-top: -20px;
-}
-
-.message-text h1 {
-    font-size: 1.9rem;
-    color: var(--primary-color);
-    margin-bottom: 1.2rem;
-    font-weight: 600;
+    margin-top: 1.5rem;
+    letter-spacing: -0.02em;
+    width: 100%;
+    text-align: center;
 }
 
 .message-text p {
-    font-size: 1.15rem;
-    line-height: 1.7;
-    margin-bottom: 1.2rem;
-    color: #444;
+    opacity: 0;
+    transition: opacity 0.25s linear;
+    font-family: "Diphylleia", serif;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 1.8rem;
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+    color: var(--primary-color);
+    letter-spacing: 0;
 }
 
-.audio-feedback {
-    width: 80%;
-    height: 8px;
-    background: #e2e8f0;
-    border-radius: 4px;
-    margin: 1.5rem auto 0;
-    overflow: hidden;
+.replay-btn {
+    margin-top: 0.5rem;
+    background: transparent;
+    color: #c54450;
+    border: 1.5px solid rgba(197, 68, 80, 0.4);
+    padding: 10px 22px;
+    border-radius: 30px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    letter-spacing: -0.01em;
+    transition: opacity 0.4s ease, transform 0.2s, background 0.2s, border-color 0.2s;
+    opacity: 0;
 }
 
-.audio-feedback .bar {
-    height: 100%;
-    width: 0%;
-    background: linear-gradient(90deg, #fc8181, #e53e3e);
-    transition: width 0.1s ease-out;
+.replay-btn.show {
+    opacity: 1;
 }
 
-/* 꽃가루 효과 */
+.replay-btn:hover {
+    background: rgba(229, 62, 62, 0.08);
+    border-color: rgba(197, 68, 80, 0.7);
+    transform: translateY(-2px);
+}
+
 @keyframes fall {
-    0% {
-        transform: translateY(-10vh) rotate(0deg);
-        opacity: 1;
-    }
-    100% {
-        transform: translateY(110vh) rotate(360deg);
-        opacity: 0.5;
-    }
-}
-
-@keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
-}
-
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(110vh) rotate(360deg); opacity: 0.5; }
 }

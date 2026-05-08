@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>어버이날 감사 카드</title>
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Diphylleia&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <meta name="description" content="사랑하는 부모님을 위한 어버이날 감사 카드입니다.">
 </head>
@@ -11,9 +15,18 @@
     <div class="card-container">
         <!-- 꽃봉오리 / 꽃 영역 -->
         <div class="flower-wrapper" id="flowerWrapper">
-            <img src="bud.png" alt="꽃봉오리" class="flower bud" id="budImg" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><text y=\'70\' font-size=\'70\'>🌱</text></svg>'">
-            <img src="half.png" alt="반쯤 핀 카네이션" class="flower half" id="halfImg">
-            <img src="flower.png" alt="활짝 핀 카네이션" class="flower blossom" id="blossomImg" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><text y=\'70\' font-size=\'70\'>🌺</text></svg>'">
+            <video
+                id="bloomVideo"
+                class="bloom-video"
+                src="flower_bloom.mp4"
+                muted
+                playsinline
+                preload="auto"
+                disablepictureinpicture
+                webkit-playsinline
+                aria-label="피어나는 카네이션">
+            </video>
+            <div class="hint-overlay" id="hintOverlay"></div>
         </div>
 
         <!-- 안내 문구 (초기 표시) -->
@@ -22,18 +35,12 @@
             <button id="startBtn" class="start-btn">마이크 허용하고 시작하기</button>
         </div>
 
-        <!-- 감사 문구 (꽃 핀 후 표시) -->
-        <div class="message-text hidden" id="messageText">
-            <h1>사랑하는 엄마 아빠!</h1>
-            <p>낳아주시고 길러주셔서 진심으로 감사합니다.<br>
-            넘어질 때마다 묵묵히 제 뒤를 지켜주신 두 분 덕분에<br>제가 여기까지 올 수 있었습니다.</p>
-            <p>이 은혜, 평생 효도로 갚을게요!<br>항상 건강하시고 행복하세요. 사랑합니다 ❤️</p>
+        <!-- 감사 문구 (영상 진행도에 따라 페이드인) -->
+        <div class="message-text" id="messageText">
+            <p data-fade-from="0.55" data-fade-to="0.95">감사합니다.<br>언제나 사랑합니다.</p>
+            <button id="replayBtn" class="replay-btn" type="button">↺ 다시 해보기</button>
         </div>
-        
-        <!-- 오디오 피드백 (시각적 게이지) -->
-        <div class="audio-feedback hidden" id="audioFeedback">
-            <div class="bar" id="audioBar"></div>
-        </div>
+
     </div>
 
     <script src="script.js"></script>
