@@ -1,62 +1,18 @@
-// 카카오톡 등 인앱 브라우저 감지 → 외부 브라우저 안내
-(function detectInAppBrowser() {
-    const ua = (navigator.userAgent || '').toLowerCase();
-    const isKakao = ua.indexOf('kakaotalk') !== -1;
-    const isOtherInApp = /(naver|line|fban|fbav|instagram|everytimeapp|whale)/.test(ua);
-    const isAndroid = /android/.test(ua);
-
-    if (!isKakao && !isOtherInApp) return;
-
-    document.addEventListener('DOMContentLoaded', () => {
-        const overlay = document.getElementById('inappOverlay');
-        const btn = document.getElementById('openExternalBtn');
-        const hint = document.getElementById('inappHint');
-        if (!overlay || !btn) return;
-
-        overlay.hidden = false;
-
-        btn.addEventListener('click', () => {
-            const url = location.href.split('#')[0];
-            if (isKakao && isAndroid) {
-                // 카카오톡(안드로이드)은 이 스킴으로 외부 브라우저 호출 가능
-                location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(url);
-            } else if (isAndroid) {
-                // 일반 안드로이드 인앱: intent로 크롬에서 열기
-                location.href = 'intent://' + url.replace(/^https?:\/\//, '') + '#Intent;scheme=https;package=com.android.chrome;end';
-            } else {
-                // iOS: URL 자동복사 + 안내 (iOS는 외부 브라우저로 강제 호출 불가)
-                try {
-                    const ta = document.createElement('textarea');
-                    ta.value = url;
-                    document.body.appendChild(ta);
-                    ta.select();
-                    document.execCommand('copy');
-                    document.body.removeChild(ta);
-                    hint.textContent = '주소가 복사됐어요. Safari를 열어 붙여넣어 주세요.';
-                } catch (e) {
-                    hint.textContent = '오른쪽 위 ··· 메뉴에서 "다른 브라우저로 열기"를 선택해주세요.';
-                }
-            }
-        });
-
-        // iOS에서도 즉시 안내 텍스트
-        if (!isAndroid) {
-            hint.textContent = 'iOS는 자동 이동이 안 돼요. 위 버튼 → Safari에 붙여넣기, 또는 ··· 메뉴를 이용해 주세요.';
-        }
-    });
-})();
-
 document.addEventListener('DOMContentLoaded', () => {
     const startBtn = document.getElementById('startBtn');
     const instructionText = document.getElementById('instructionText');
     const messageText = document.getElementById('messageText');
-    const video = document.getElementById('bloomVideo');
+    const flowerImg = document.getElementById('flowerImg');
     const hintOverlay = document.getElementById('hintOverlay');
     const replayBtn = document.getElementById('replayBtn');
     const fadeEls = Array.from(messageText.querySelectorAll('[data-fade-from]'));
 
-    let lastBlowAt = 0;
-    let currentHint = '';
+    // 이미지 시퀀스 — 카카오톡 인앱 브라우저 등 비디오 안 되는 환경 대응
+    const FRAME_COUNT = 80;
+    const framePath = (i) => `frames/f${String(i + 1).padStart(3, '0')}.jpg`;
+    const frames = [];
+    let framesLoaded = 0;
+    let isReady = false;
 
     let audioContext;
     let analyser;
@@ -65,26 +21,58 @@ document.addEventListener('DOMContentLoaded', () => {
     let animationId;
 
     let lastTime = 0;
-    let videoDuration = 0;
+    let lastBlowAt = 0;
+    let currentHint = '';
+    let progress = 0;       // 0(봉오리) ~ 1(만개)
+    let lastFrameIdx = -1;
     let isBloomed = false;
 
     // 튜닝
     const THRESHOLD = 22;
-    const MIN_RATE = 0.6;
-    const MAX_RATE = 3.0;
-    const REWIND_SPEED = 0.45;
+    const ADVANCE_SPEED = 0.5;   // 강하게 불 때 1초당 진행률
+    const REWIND_SPEED = 0.3;    // 안 불 때 1초당 되감기 속도
+    const COMPLETE_AT = 0.985;
 
-    const showFirstFrame = () => { try { video.currentTime = 0.01; } catch (e) {} };
-    if (video.readyState >= 2) showFirstFrame();
-    else video.addEventListener('loadeddata', showFirstFrame, { once: true });
+    // ── 프레임 미리 로딩 ──────────────────────────────────────
+    function preloadFrames() {
+        for (let i = 0; i < FRAME_COUNT; i++) {
+            const img = new Image();
+            img.src = framePath(i);
+            img.decoding = 'async';
+            img.onload = () => onFrameLoaded(i);
+            img.onerror = () => onFrameLoaded(i, true);
+            frames.push(img);
+        }
+    }
 
-    video.addEventListener('loadedmetadata', () => {
-        videoDuration = video.duration || 0;
-    });
+    function onFrameLoaded(i, errored) {
+        framesLoaded++;
+        if (i === 0 && !errored) {
+            // 첫 프레임 표시 (이미 src 설정돼 있지만 한번 더 보장)
+            flowerImg.src = frames[0].src;
+        }
+        if (framesLoaded >= FRAME_COUNT) {
+            isReady = true;
+            startBtn.disabled = false;
+            startBtn.textContent = '마이크 허용하고 시작하기';
+        } else if (framesLoaded % 10 === 0) {
+            const pct = Math.round((framesLoaded / FRAME_COUNT) * 100);
+            startBtn.textContent = `준비중... ${pct}%`;
+        }
+    }
 
-    video.addEventListener('ended', () => onFullyBloomed());
+    function setFrame(p) {
+        const idx = Math.max(0, Math.min(FRAME_COUNT - 1, Math.floor(p * (FRAME_COUNT - 1))));
+        if (idx === lastFrameIdx) return;
+        lastFrameIdx = idx;
+        flowerImg.src = frames[idx].src;
+    }
 
+    preloadFrames();
+
+    // ── 마이크 처리 ──────────────────────────────────────────
     startBtn.addEventListener('click', async () => {
+        if (!isReady || startBtn.disabled) return;
         try {
             const stream = await navigator.mediaDevices.getUserMedia({
                 audio: {
@@ -96,6 +84,9 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioContext.state === 'suspended') {
+                try { await audioContext.resume(); } catch (e) {}
+            }
             analyser = audioContext.createAnalyser();
             analyser.fftSize = 256;
 
@@ -106,20 +97,6 @@ document.addEventListener('DOMContentLoaded', () => {
             startBtn.classList.add('hidden');
             const p = document.querySelector('.instruction-text p');
             if (p) p.innerHTML = "화면 가까이 대고 <strong>'후~'</strong> 길게 불어주세요 🌬️";
-
-            // iOS/모바일에서 사용자 제스처 안에서 영상을 한 번 깨워줌
-            video.muted = true;
-            video.playsInline = true;
-            try { video.load(); } catch (e) {}
-            try {
-                const warm = video.play();
-                if (warm && warm.then) {
-                    await warm.then(() => video.pause()).catch(() => {});
-                } else {
-                    video.pause();
-                }
-            } catch (e) {}
-            try { video.currentTime = 0.01; } catch (e) {}
 
             lastTime = 0;
             animationId = requestAnimationFrame(tick);
@@ -142,42 +119,31 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateHint(ratio, isBlowing, now) {
-        // 거의 만개에 도달하면 힌트 숨김
         if (ratio >= 0.95) { setHint(''); return; }
-
         const idleMs = now - lastBlowAt;
-
         if (isBlowing) {
-            // 부는 중 — 진행도에 따라 응원 메세지
             if (ratio < 0.35) setHint('힘차게 불어 꽃을 피어주세요! 🌬️');
             else if (ratio < 0.75) setHint('조금만 더 불어주세요!');
             else setHint('거의 다 됐어요! 🌷');
         } else if (ratio > 0.05 && idleMs > 500) {
-            // 진행 중에 멈춤
             setHint('더 불어주세요! 🌬️');
         } else if (ratio <= 0.05) {
-            // 시작 직후 아직 안 분 상태
             setHint('');
         }
     }
 
+    function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
     function updateMessageOpacity(ratio) {
-        // 안내 문구는 영상이 시작되면 빠르게 사라짐
         const hideStart = 0.05, hideEnd = 0.30;
         const instOp = 1 - clamp((ratio - hideStart) / (hideEnd - hideStart), 0, 1);
         instructionText.style.opacity = instOp;
-
-        // 각 메세지 요소는 자기 구간에 따라 페이드인
         fadeEls.forEach(el => {
             const from = parseFloat(el.dataset.fadeFrom);
             const to = parseFloat(el.dataset.fadeTo);
             const t = clamp((ratio - from) / (to - from), 0, 1);
             el.style.opacity = t;
         });
-    }
-
-    function clamp(v, lo, hi) {
-        return Math.max(lo, Math.min(hi, v));
     }
 
     function tick(now) {
@@ -195,23 +161,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isBlowing) {
             lastBlowAt = now;
             const strength = Math.min(1, (avg - THRESHOLD) / 60);
-            video.playbackRate = MIN_RATE + strength * (MAX_RATE - MIN_RATE);
-            if (video.paused) {
-                const pp = video.play();
-                if (pp && pp.catch) pp.catch(() => {});
-            }
+            progress += strength * ADVANCE_SPEED * dt;
         } else {
-            if (!video.paused) video.pause();
-            const next = Math.max(0.01, video.currentTime - REWIND_SPEED * dt);
-            try { video.currentTime = next; } catch (e) {}
+            progress -= REWIND_SPEED * dt;
         }
+        progress = Math.max(0, Math.min(1, progress));
 
-        // 영상 진행도(0~1) → 메세지 페이드 동기화
-        const ratio = videoDuration > 0 ? video.currentTime / videoDuration : 0;
-        updateMessageOpacity(ratio);
-        updateHint(ratio, isBlowing, now);
+        setFrame(progress);
+        updateMessageOpacity(progress);
+        updateHint(progress, isBlowing, now);
 
-        if (videoDuration > 0 && video.currentTime >= videoDuration - 0.05) {
+        if (progress >= COMPLETE_AT) {
             onFullyBloomed();
             return;
         }
@@ -231,30 +191,26 @@ document.addEventListener('DOMContentLoaded', () => {
             audioContext.close();
         }
 
-        video.pause();
-        if (videoDuration > 0) {
-            try { video.currentTime = videoDuration - 0.05; } catch (e) {}
-        }
+        // 마지막 프레임 고정
+        setFrame(1);
 
-        // 안내 완전 사라지고 메세지는 모두 보이도록 고정
         instructionText.style.opacity = 0;
         instructionText.classList.add('hidden');
         setHint('');
         fadeEls.forEach(el => { el.style.opacity = 1; });
 
         setTimeout(createConfetti, 250);
-        // 다시 해보기 버튼은 메세지가 다 뜨고 나서 등장
         setTimeout(() => replayBtn.classList.add('show'), 1400);
     }
 
     function resetAll() {
-        // 상태 초기화
         isBloomed = false;
         lastTime = 0;
         lastBlowAt = 0;
         currentHint = '';
+        progress = 0;
+        lastFrameIdx = -1;
 
-        // UI 초기화
         replayBtn.classList.remove('show');
         fadeEls.forEach(el => { el.style.opacity = 0; });
         setHint('');
@@ -264,10 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const p = document.querySelector('.instruction-text p');
         if (p) p.innerHTML = "소리내어 <strong>'후~'</strong> 불어주세요 🌬️";
 
-        // 영상 초기화
-        try { video.pause(); } catch (e) {}
-        try { video.currentTime = 0.01; } catch (e) {}
-        video.playbackRate = 1;
+        setFrame(0);
     }
 
     replayBtn.addEventListener('click', resetAll);

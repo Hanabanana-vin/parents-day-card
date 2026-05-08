@@ -63,13 +63,15 @@ body {
     flex-shrink: 0;
 }
 
-.bloom-video {
+.bloom-img {
     width: 100%;
     height: 100%;
     object-fit: contain;
     background: transparent;
     pointer-events: none;
     display: block;
+    user-select: none;
+    -webkit-user-drag: none;
 }
 
 /* 영상 위에 떠있는 작은 인터랙티브 안내 */
@@ -129,9 +131,14 @@ body {
     box-shadow: 0 4px 15px rgba(229, 62, 62, 0.4);
 }
 
-.start-btn:hover {
+.start-btn:hover:not(:disabled) {
     transform: translateY(-3px);
     box-shadow: 0 6px 20px rgba(229, 62, 62, 0.5);
+}
+
+.start-btn:disabled {
+    opacity: 0.6;
+    cursor: default;
 }
 
 /* 감사 문구 — 영상 진행도에 동기화되어 JS가 각 요소 opacity 조절 */
@@ -186,67 +193,3 @@ body {
     100% { transform: translateY(110vh) rotate(360deg); opacity: 0.5; }
 }
 
-/* 인앱 브라우저 안내 오버레이 */
-.inapp-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(40, 25, 25, 0.55);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-}
-
-.inapp-overlay[hidden] { display: none; }
-
-.inapp-card {
-    background: #fff;
-    border-radius: 18px;
-    padding: 28px 24px;
-    width: 100%;
-    max-width: 360px;
-    text-align: center;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
-}
-
-.inapp-title {
-    font-size: 1.15rem;
-    font-weight: 700;
-    color: #c54450;
-    margin-bottom: 12px;
-    letter-spacing: -0.02em;
-}
-
-.inapp-desc {
-    font-size: 0.95rem;
-    color: #555;
-    line-height: 1.6;
-    margin-bottom: 20px;
-    letter-spacing: -0.01em;
-}
-
-.inapp-btn {
-    background: linear-gradient(135deg, #fc8181 0%, #e53e3e 100%);
-    color: #fff;
-    border: none;
-    padding: 12px 26px;
-    border-radius: 30px;
-    font-size: 1rem;
-    font-weight: 700;
-    cursor: pointer;
-    font-family: inherit;
-    letter-spacing: -0.01em;
-    box-shadow: 0 4px 15px rgba(229, 62, 62, 0.4);
-    width: 100%;
-}
-
-.inapp-hint {
-    margin-top: 14px;
-    font-size: 0.82rem;
-    color: #888;
-    line-height: 1.55;
-    letter-spacing: -0.01em;
-}
