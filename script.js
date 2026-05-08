@@ -28,10 +28,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let isBloomed = false;
 
     // 튜닝
-    const THRESHOLD = 12;        // 수음 민감도 (낮을수록 민감)
-    const STRENGTH_DIV = 35;     // 강도 정규화 분모 (작을수록 빨리 max)
-    const ADVANCE_SPEED = 0.55;
-    const REWIND_SPEED = 0.3;
+    const THRESHOLD = 5;         // 수음 민감도 (낮을수록 민감)
+    const STRENGTH_DIV = 18;     // 강도 정규화 분모 (작을수록 약한 입김도 max)
+    const ADVANCE_SPEED = 0.6;
+    const REWIND_SPEED = 0.28;
     const COMPLETE_AT = 0.985;
 
     // ── 프레임 미리 로딩 ──────────────────────────────────────
@@ -79,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 audio: {
                     echoCancellation: false,
                     noiseSuppression: false,
-                    autoGainControl: false
+                    autoGainControl: true   // 약한 입김도 증폭되도록 켬
                 },
                 video: false
             });
@@ -89,7 +89,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 try { await audioContext.resume(); } catch (e) {}
             }
             analyser = audioContext.createAnalyser();
-            analyser.fftSize = 256;
+            analyser.fftSize = 512;
+            analyser.smoothingTimeConstant = 0.4;
 
             microphone = audioContext.createMediaStreamSource(stream);
             microphone.connect(analyser);
@@ -154,9 +155,11 @@ document.addEventListener('DOMContentLoaded', () => {
         lastTime = now;
 
         analyser.getByteFrequencyData(dataArray);
-        let sum = 0;
-        for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
-        const avg = sum / dataArray.length;
+        // 입김은 저주파 광대역 노이즈로 잡힘 — 저주파 대역만 평균내면 노이즈/대화 잡음 영향이 줄고 민감도가 올라감
+        const lowEnd = Math.floor(dataArray.length * 0.20); // 0~약 4.6kHz
+        let sumLow = 0;
+        for (let i = 1; i < lowEnd; i++) sumLow += dataArray[i];
+        const avg = sumLow / (lowEnd - 1);
 
         const isBlowing = avg > THRESHOLD;
         if (isBlowing) {
