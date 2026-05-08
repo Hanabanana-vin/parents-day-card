@@ -1,3 +1,51 @@
+// 카카오톡 등 인앱 브라우저 감지 → 외부 브라우저 안내
+(function detectInAppBrowser() {
+    const ua = (navigator.userAgent || '').toLowerCase();
+    const isKakao = ua.indexOf('kakaotalk') !== -1;
+    const isOtherInApp = /(naver|line|fban|fbav|instagram|everytimeapp|whale)/.test(ua);
+    const isAndroid = /android/.test(ua);
+
+    if (!isKakao && !isOtherInApp) return;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const overlay = document.getElementById('inappOverlay');
+        const btn = document.getElementById('openExternalBtn');
+        const hint = document.getElementById('inappHint');
+        if (!overlay || !btn) return;
+
+        overlay.hidden = false;
+
+        btn.addEventListener('click', () => {
+            const url = location.href.split('#')[0];
+            if (isKakao && isAndroid) {
+                // 카카오톡(안드로이드)은 이 스킴으로 외부 브라우저 호출 가능
+                location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(url);
+            } else if (isAndroid) {
+                // 일반 안드로이드 인앱: intent로 크롬에서 열기
+                location.href = 'intent://' + url.replace(/^https?:\/\//, '') + '#Intent;scheme=https;package=com.android.chrome;end';
+            } else {
+                // iOS: URL 자동복사 + 안내 (iOS는 외부 브라우저로 강제 호출 불가)
+                try {
+                    const ta = document.createElement('textarea');
+                    ta.value = url;
+                    document.body.appendChild(ta);
+                    ta.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(ta);
+                    hint.textContent = '주소가 복사됐어요. Safari를 열어 붙여넣어 주세요.';
+                } catch (e) {
+                    hint.textContent = '오른쪽 위 ··· 메뉴에서 "다른 브라우저로 열기"를 선택해주세요.';
+                }
+            }
+        });
+
+        // iOS에서도 즉시 안내 텍스트
+        if (!isAndroid) {
+            hint.textContent = 'iOS는 자동 이동이 안 돼요. 위 버튼 → Safari에 붙여넣기, 또는 ··· 메뉴를 이용해 주세요.';
+        }
+    });
+})();
+
 document.addEventListener('DOMContentLoaded', () => {
     const startBtn = document.getElementById('startBtn');
     const instructionText = document.getElementById('instructionText');

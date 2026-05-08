@@ -12,6 +12,16 @@
     <meta name="description" content="사랑하는 부모님을 위한 어버이날 감사 카드입니다.">
 </head>
 <body>
+    <!-- 카카오톡 등 인앱 브라우저에서 열린 경우 안내 -->
+    <div class="inapp-overlay" id="inappOverlay" hidden>
+        <div class="inapp-card">
+            <p class="inapp-title">🌷 외부 브라우저에서 열어주세요</p>
+            <p class="inapp-desc">카카오톡 안에서는 영상이 잘 보이지 않아요.<br>아래 버튼을 눌러 기본 브라우저에서 열어주세요.</p>
+            <button id="openExternalBtn" class="inapp-btn" type="button">기본 브라우저로 열기</button>
+            <p class="inapp-hint" id="inappHint"></p>
+        </div>
+    </div>
+
     <div class="card-container">
         <!-- 꽃봉오리 / 꽃 영역 -->
         <div class="flower-wrapper" id="flowerWrapper">
